@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Daily Brief</title>
+<style>
+  :root{
+    --bg:#0d0f12;
+    --panel:#14171c;
+    --panel-2:#1a1e24;
+    --line:#262b33;
+    --ink:#e8e6e0;
+    --ink-dim:#9aa0a8;
+    --ink-faint:#5f6670;
+    --accent:#c9a227;      /* brass — briefing/seal */
+    --accent-soft:#8a7320;
+    --alert:#d6604a;       /* war/markets red */
+    --cool:#5b8fb0;        /* foreign affairs */
+    --serif:"Iowan Old Style","Palatino Linotype","Georgia",serif;
+    --mono:"SF Mono","JetBrains Mono","Menlo","Consolas",monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);color:var(--ink);
+    font-family:var(--serif);line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    background-image:radial-gradient(circle at 50% -10%,rgba(201,162,39,.06),transparent 55%);
+  }
+  .wrap{max-width:860px;margin:0 auto;padding:0 22px 120px}
+
+  /* Masthead */
+  header.mast{padding:46px 0 22px;border-bottom:2px solid var(--line);text-align:center}
+  .seal{font-family:var(--mono);font-size:11px;letter-spacing:.32em;color:var(--accent);text-transform:uppercase}
+  h1.title{font-size:clamp(38px,8vw,62px);font-weight:600;letter-spacing:-.02em;margin:6px 0 4px;line-height:1}
+  .dateline{font-family:var(--mono);font-size:12.5px;color:var(--ink-dim);letter-spacing:.05em;margin-top:10px}
+  .dateline .live{color:var(--accent)}
+
+  /* Date selector */
+  nav.dates{display:flex;gap:7px;flex-wrap:wrap;justify-content:center;margin:22px 0 6px}
+  nav.dates button{
+    background:var(--panel);border:1px solid var(--line);color:var(--ink-dim);
+    font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;
+    padding:7px 12px;border-radius:3px;cursor:pointer;transition:.15s;
+  }
+  nav.dates button:hover{border-color:var(--accent-soft);color:var(--ink)}
+  nav.dates button[aria-current="true"]{background:var(--accent);border-color:var(--accent);color:#1a1407;font-weight:600}
+  nav.dates button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+  /* Topic block */
+  .topic{margin-top:40px;border-top:1px solid var(--line);padding-top:30px;scroll-margin-top:20px}
+  .topic-head{display:flex;align-items:baseline;gap:14px;margin-bottom:4px}
+  .topic-num{font-family:var(--mono);font-size:12px;color:var(--ink-faint);letter-spacing:.1em}
+  h2.topic-title{font-size:27px;font-weight:600;letter-spacing:-.01em}
+  .tag{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.14em;
+    padding:3px 8px;border-radius:2px;align-self:center;border:1px solid currentColor}
+  .tag.core{color:var(--accent)} .tag.rotating{color:var(--cool)}
+  .pulse{font-family:var(--mono);font-size:12px;color:var(--ink-dim);margin:8px 0 18px;
+    padding-left:13px;border-left:2px solid var(--alert)}
+
+  .synthesis{font-size:17.5px;color:var(--ink);margin-bottom:8px}
+  .synthesis p{margin-bottom:14px}
+  .synthesis p:first-letter{}
+  .read-toggle{font-family:var(--mono);font-size:11px;color:var(--accent);background:none;border:none;
+    cursor:pointer;letter-spacing:.08em;padding:2px 0;border-bottom:1px dashed var(--accent-soft)}
+
+  /* Sources */
+  .sources-h{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--ink-faint);margin:24px 0 12px;display:flex;align-items:center;gap:10px}
+  .sources-h::after{content:"";flex:1;height:1px;background:var(--line)}
+  .src{display:block;text-decoration:none;color:inherit;background:var(--panel);
+    border:1px solid var(--line);border-left:2px solid var(--line);border-radius:4px;
+    padding:13px 15px;margin-bottom:9px;transition:.15s}
+  .src:hover{border-left-color:var(--accent);background:var(--panel-2);transform:translateX(2px)}
+  .src:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .src-top{display:flex;justify-content:space-between;gap:12px;align-items:baseline;margin-bottom:4px}
+  .src-title{font-size:16px;font-weight:600;color:var(--ink)}
+  .src-meta{font-family:var(--mono);font-size:10.5px;color:var(--ink-faint);white-space:nowrap;letter-spacing:.03em}
+  .src-sum{font-size:14.5px;color:var(--ink-dim);line-height:1.5}
+  .src-pay{font-family:var(--mono);font-size:9.5px;color:var(--accent);border:1px solid var(--accent-soft);
+    padding:1px 5px;border-radius:2px;letter-spacing:.08em;margin-left:6px}
+
+  footer{margin-top:60px;padding-top:20px;border-top:1px solid var(--line);
+    font-family:var(--mono);font-size:11px;color:var(--ink-faint);text-align:center;letter-spacing:.04em}
+
+  .collapsed{display:none}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+  @media(max-width:560px){.src-top{flex-direction:column;gap:2px}.src-meta{white-space:normal}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="mast">
+    <div class="seal">&#9670; Daily Intelligence Digest &#9670;</div>
+    <h1 class="title">The Daily Brief</h1>
+    <div class="dateline" id="dateline"></div>
+  </header>
+
+  <nav class="dates" id="dateNav" aria-label="Archive — last 7 days"></nav>
+
+  <main id="content"></main>
+
+  <footer id="footer"></footer>
+</div>
+
+<script id="digest-data" type="application/json">
+{
+  "generator": "Cowork Routine — daily 06:30",
+  "days": [
+    {
+      "date": "2026-06-09",
+      "label": "Tue Jun 9",
+      "topics": [
+        {
+          "name": "Markets & Finance", "kind": "core",
+          "pulse": "10-yr yield 4.31% \u00b7 S&P futures +0.4% \u00b7 Brent $74.10 \u00b7 DXY 104.2",
+          "synthesis": [
+            "Rate-cut expectations dominate this morning's tape. Futures markets now price a roughly two-in-three chance of a cut at the next meeting after softer-than-expected services inflation, and the front end of the curve has rallied accordingly. The move is less about growth optimism than about disinflation finally showing up in the stickiest categories, which gives the central bank cover to ease without appearing to chase markets.",
+            "Beneath the index level, leadership is narrowing again. Megacap tech is carrying breadth while cyclicals and small caps lag, a divergence that historically precedes volatility rather than durable rallies. Credit spreads remain tight, suggesting no funding stress, but the equity/credit disagreement is worth watching into month-end."
+          ],
+          "sources": [
+            {"title":"Services CPI cools, reviving cut bets","outlet":"Reuters","time":"05:40 ET","paywall":false,"summary":"Core services ex-housing posted its slowest monthly gain since 2023, shifting fed-funds futures toward an earlier cut."},
+            {"title":"Why breadth matters more than the index","outlet":"FT Alphaville","time":"04:10 ET","paywall":true,"summary":"Analysis argues narrowing participation, not valuation alone, is the cleaner warning signal for late-cycle equity tops."},
+            {"title":"Brent steadies as OPEC+ holds quotas","outlet":"Bloomberg","time":"03:55 ET","paywall":true,"summary":"Crude found support after the group signaled no change to output targets despite demand-growth downgrades."}
+          ]
+        },
+        {
+          "name": "Politics", "kind": "core",
+          "pulse": "Budget deadline T-minus 9 days \u00b7 Two committee votes scheduled",
+          "synthesis": [
+            "The spending fight is moving from rhetoric to arithmetic. With the deadline inside two weeks, both chambers are now trading concrete numbers rather than positioning statements, and the gap has narrowed to a handful of contested line items. A short stopgap remains the most likely outcome, but the timeline is tight enough that procedural delays alone could force a brief lapse.",
+            "Separately, a procedural vote scheduled this week will test whether a cross-party bloc that emerged last month can hold together on a second issue. If it does, it signals a durable realignment on this policy area rather than a one-off; if it fractures, the earlier vote looks more like a fluke."
+          ],
+          "sources": [
+            {"title":"Negotiators narrow gap to single-digit line items","outlet":"AP","time":"06:05 ET","paywall":false,"summary":"Staff-level talks resolved most of the topline; remaining disputes concentrated in two appropriations categories."},
+            {"title":"The bloc that could decide the week's vote","outlet":"Politico","time":"05:20 ET","paywall":false,"summary":"Profiles the cross-party group whose cohesion will be tested by a procedural motion expected midweek."}
+          ]
+        },
+        {
+          "name": "War & Conflict", "kind": "core",
+          "pulse": "Two active fronts reported \u00b7 Ceasefire talks resume Thursday",
+          "synthesis": [
+            "Diplomatic and battlefield tracks are moving in opposite directions this week. Negotiators are returning to the table on Thursday, yet ground reporting describes intensified activity along the contested corridor in the 48 hours prior \u2014 a familiar pattern in which each side seeks leverage before talks. Independent verification remains limited; treat front-line claims from either party as provisional.",
+            "Humanitarian access is the quieter but more consequential story. Aid-corridor throughput has reportedly fallen, and several agencies have paused operations citing security. Whether the Thursday talks produce even a narrow humanitarian arrangement may matter more for civilians than the wider political framing."
+          ],
+          "sources": [
+            {"title":"Talks to resume Thursday amid front-line uptick","outlet":"Reuters","time":"04:30 ET","paywall":false,"summary":"Mediators confirmed a return to negotiations even as both sides reported increased activity along the corridor."},
+            {"title":"Aid agencies pause operations on security","outlet":"AP","time":"02:15 ET","paywall":false,"summary":"Multiple organizations suspended movements after access deteriorated; throughput down sharply week-on-week."},
+            {"title":"What leverage each side is seeking","outlet":"War on the Rocks","time":"Jun 8","paywall":false,"summary":"Analysis frames the pre-talks escalation as positioning rather than a bid to derail the negotiations outright."}
+          ]
+        },
+        {
+          "name": "Markets \u2014 Deep Dive", "kind": "rotating",
+          "pulse": "Rotating slot \u00b7 Theme: private credit stress",
+          "synthesis": [
+            "Attention is shifting to private credit as the cycle's potential weak point. The asset class ballooned while public markets were volatile, but it has never been tested through a full default cycle at current scale. Early signs \u2014 rising payment-in-kind usage and lengthening hold periods \u2014 suggest some borrowers are being kept current by accounting flexibility rather than cash generation.",
+            "The systemic question is containment. Because exposure sits largely with insurers, pensions, and dedicated funds rather than deposit-taking banks, a wave of losses would likely be slow-burning and opaque rather than a sudden bank-style shock \u2014 harder to see coming, but also less prone to overnight contagion."
+          ],
+          "sources": [
+            {"title":"PIK usage climbs as borrowers conserve cash","outlet":"FT","time":"Jun 8","paywall":true,"summary":"Rising payment-in-kind interest is masking strain at leveraged borrowers, raising questions about underlying credit quality."},
+            {"title":"Who actually holds the private-credit risk","outlet":"Bloomberg","time":"Jun 8","paywall":true,"summary":"Maps exposure across insurers and pensions, arguing the structure favors slow losses over sudden contagion."}
+          ]
+        },
+        {
+          "name": "Foreign Affairs", "kind": "rotating",
+          "pulse": "Rotating slot \u00b7 Theme: trade-bloc realignment",
+          "synthesis": [
+            "A quieter realignment is underway in trade diplomacy. Several mid-sized economies are deepening bilateral arrangements that route around the largest powers, hedging against the unpredictability of great-power tariff policy. Individually minor, collectively these deals are knitting a parallel trade fabric that reduces any single hegemon's leverage.",
+            "The strategic read is optionality, not alignment. These states are not choosing a side so much as buying room to maneuver \u2014 keeping doors open to all major blocs while insulating critical supply chains from any one of them. Expect the pattern to accelerate if tariff uncertainty persists."
+          ],
+          "sources": [
+            {"title":"Mid-sized economies build parallel trade ties","outlet":"The Economist","time":"Jun 8","paywall":true,"summary":"A web of bilateral deals is emerging that deliberately routes around the largest trading powers."},
+            {"title":"Hedging, not choosing sides","outlet":"Foreign Affairs","time":"Jun 7","paywall":true,"summary":"Argues the realignment reflects a search for optionality and supply-chain insulation rather than bloc loyalty."}
+          ]
+        }
+      ]
+    },
+    {"date":"2026-06-08","label":"Mon Jun 8","topics":[{"name":"Markets & Finance","kind":"core","pulse":"Archived","synthesis":["Archived digest. Each day the Routine writes a full entry here; older days remain browsable for seven days before rolling off."],"sources":[{"title":"Sample archived source","outlet":"Reuters","time":"Jun 8","paywall":false,"summary":"Past entries keep their synthesis and sources so you can scan the week."}]}]},
+    {"date":"2026-06-07","label":"Sun Jun 7","topics":[{"name":"Markets & Finance","kind":"core","pulse":"Archived","synthesis":["Archived digest placeholder."],"sources":[]}]}
+  ]
+}
+</script>
+
+<script>
+(function(){
+  var data;
+  try{ data = JSON.parse(document.getElementById('digest-data').textContent); }
+  catch(e){ document.getElementById('content').innerHTML='<p style="font-family:var(--mono);color:var(--alert)">Could not read digest data. The Routine may not have written today\u2019s file yet.</p>'; return; }
+
+  var days = (data.days||[]).slice(0,7);
+  var nav = document.getElementById('dateNav');
+  var content = document.getElementById('content');
+  var dateline = document.getElementById('dateline');
+  document.getElementById('footer').textContent = '\u25C7  Generated by ' + (data.generator||'Cowork Routine') + '  \u00b7  rolling 7-day archive  \u25C7';
+
+  function esc(s){return String(s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];});}
+
+  function render(day){
+    dateline.innerHTML = '<span class="live">\u25CF LIVE</span> &nbsp;&middot;&nbsp; ' + esc(day.label) + ', 2026 &nbsp;&middot;&nbsp; ' + day.topics.length + ' topics';
+    var html='';
+    day.topics.forEach(function(t,i){
+      var num=('0'+(i+1)).slice(-2);
+      var tagClass = t.kind==='core'?'core':'rotating';
+      var tagLabel = t.kind==='core'?'Core':'Rotating';
+      html+='<section class="topic">';
+      html+='<div class="topic-head"><span class="topic-num">'+num+'</span><h2 class="topic-title">'+esc(t.name)+'</h2><span class="tag '+tagClass+'">'+tagLabel+'</span></div>';
+      if(t.pulse) html+='<div class="pulse">'+esc(t.pulse)+'</div>';
+
+      var paras=t.synthesis||[];
+      html+='<div class="synthesis">';
+      paras.forEach(function(p,pi){
+        var cls = pi>0 ? ' class="extra collapsed"' : '';
+        html+='<p'+cls+' data-syn="'+i+'">'+esc(p)+'</p>';
+      });
+      html+='</div>';
+      if(paras.length>1){
+        html+='<button class="read-toggle" data-toggle="'+i+'">+ read full synthesis</button>';
+      }
+
+      if(t.sources&&t.sources.length){
+        html+='<div class="sources-h">Sources &middot; '+t.sources.length+'</div>';
+        t.sources.forEach(function(s){
+          var pay = s.paywall?'<span class="src-pay">PAYWALL</span>':'';
+          var href = s.url?esc(s.url):'#';
+          html+='<a class="src" href="'+href+'" target="_blank" rel="noopener">';
+          html+='<div class="src-top"><span class="src-title">'+esc(s.title)+pay+'</span><span class="src-meta">'+esc(s.outlet||'')+' \u00b7 '+esc(s.time||'')+'</span></div>';
+          if(s.summary) html+='<div class="src-sum">'+esc(s.summary)+'</div>';
+          html+='</a>';
+        });
+      }
+      html+='</section>';
+    });
+    content.innerHTML=html;
+
+    content.querySelectorAll('[data-toggle]').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        var id=btn.getAttribute('data-toggle');
+        var hidden=content.querySelectorAll('p.extra[data-syn="'+id+'"]');
+        var open=btn.textContent.indexOf('read full')>-1;
+        hidden.forEach(function(p){p.classList.toggle('collapsed',!open);});
+        btn.textContent= open ? '\u2212 collapse synthesis' : '+ read full synthesis';
+      });
+    });
+  }
+
+  days.forEach(function(d,idx){
+    var b=document.createElement('button');
+    b.textContent=d.label;
+    b.setAttribute('aria-current', idx===0?'true':'false');
+    b.addEventListener('click',function(){
+      nav.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-current','false');});
+      b.setAttribute('aria-current','true');
+      render(d);
+      window.scrollTo({top:0});
+    });
+    nav.appendChild(b);
+  });
+
+  render(days[0]);
+})();
+</script>
+</body>
+</html>
